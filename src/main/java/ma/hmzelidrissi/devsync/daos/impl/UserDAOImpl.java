@@ -26,6 +26,12 @@ public class UserDAOImpl implements UserDAO {
         return entityManager.find(User.class, id);
     }
 
+    /**
+     * Find all users uses a JPQL query to select all users from the database.
+     * The difference between SQL and JPQL is that JPQL queries entities and their properties, not tables and columns.
+     * The findAll method is not transactional because it only reads data
+     * @return a list of all users
+     */
     @Override
     public List<User> findAll() {
         return entityManager.createQuery("SELECT u FROM User u", User.class).getResultList();
