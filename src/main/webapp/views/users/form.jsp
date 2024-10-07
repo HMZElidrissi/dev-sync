@@ -50,10 +50,10 @@
             </div>
 
             <div class="flex items-center justify-between">
-                <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                <button type="submit" class="bg-gray-700 hover:bg-gray-900 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                         ${empty user ? 'Create' : 'Update'} User
                 </button>
-                <a href="${pageContext.request.contextPath}/users" class="inline-block align-baseline font-bold text-sm text-blue-500 hover:text-blue-800">
+                <a href="${pageContext.request.contextPath}/users" class="inline-block align-baseline font-bold text-sm text-gray-700 hover:text-gray-900 hover:underline">
                     Cancel
                 </a>
             </div>
