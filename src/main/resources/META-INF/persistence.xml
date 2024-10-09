@@ -3,12 +3,24 @@
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
              xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence https://jakarta.ee/xml/ns/persistence/persistence_3_0.xsd"
              version="3.0">
+<!--    <persistence-unit name="devSyncPU" transaction-type="JTA">-->
+<!--        <jta-data-source>jdbc/DevSyncDS</jta-data-source>-->
+<!--        <properties>-->
+<!--            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>-->
+<!--            <property name="jakarta.persistence.schema-generation.database.action" value="create"/>-->
+<!--&lt;!&ndash;            <property name="hibernate.hbm2ddl.auto" value="update"/>&ndash;&gt;-->
+<!--            <property name="hibernate.show_sql" value="true"/>-->
+<!--            <property name="hibernate.format_sql" value="true"/>-->
+<!--        </properties>-->
+<!--    </persistence-unit>-->
     <persistence-unit name="devSyncPU" transaction-type="JTA">
-        <jta-data-source>jdbc/DevSyncDS</jta-data-source>
         <properties>
+            <property name="jakarta.persistence.jdbc.driver" value="org.postgresql.Driver"/>
+            <property name="jakarta.persistence.jdbc.url" value="${DB_URL}"/>
+            <property name="jakarta.persistence.jdbc.user" value="${DB_USER}"/>
+            <property name="jakarta.persistence.jdbc.password" value="${DB_PASSWORD}"/>
             <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
             <property name="jakarta.persistence.schema-generation.database.action" value="create"/>
-<!--            <property name="hibernate.hbm2ddl.auto" value="update"/>-->
             <property name="hibernate.show_sql" value="true"/>
             <property name="hibernate.format_sql" value="true"/>
         </properties>

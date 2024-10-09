@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8084:8080" # Host:Container
+    depends_on:
+      - db
+    environment:
+      - DB_URL=jdbc:postgresql://db:5432/devsync
+      - DB_USER=hamza
+      - DB_PASSWORD=hamza
+
+  db:
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=hamza
+      - POSTGRES_PASSWORD=hamza
+      - POSTGRES_DB=devsync
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
