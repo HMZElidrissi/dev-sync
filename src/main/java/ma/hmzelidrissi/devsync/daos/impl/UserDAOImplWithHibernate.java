@@ -45,7 +45,7 @@ public class UserDAOImplWithHibernate implements UserDAO {
     @Override
     public List<User> findAll() {
         try (Session session = sessionFactory.openSession()) {
-            Query<User> query = session.createQuery("FROM User", User.class);
+            Query<User> query = session.createQuery("FROM User", User.class); // in HQL, this is equivalent to "SELECT u FROM User u"
             return query.list();
         }
     }
