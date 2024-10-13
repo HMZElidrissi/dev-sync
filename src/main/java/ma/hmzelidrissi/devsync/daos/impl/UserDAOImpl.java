@@ -1,6 +1,7 @@
 package ma.hmzelidrissi.devsync.daos.impl;
 
 import ma.hmzelidrissi.devsync.daos.UserDAO;
+import ma.hmzelidrissi.devsync.entities.Role;
 import ma.hmzelidrissi.devsync.entities.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
@@ -48,5 +49,19 @@ public class UserDAOImpl implements UserDAO {
         if (user != null) {
             entityManager.remove(user);
         }
+    }
+
+    @Override
+    public User findByUsername(String username) {
+        return entityManager.createQuery("SELECT u FROM User u WHERE u.username = :username", User.class)
+                .setParameter("username", username)
+                .getSingleResult();
+    }
+
+    @Override
+    public List<User> findByRole(Role role) {
+        return entityManager.createQuery("SELECT u FROM User u WHERE u.role = :role", User.class)
+                .setParameter("role", role)
+                .getResultList();
     }
 }

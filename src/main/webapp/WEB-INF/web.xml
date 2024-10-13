@@ -4,4 +4,10 @@
          xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/web-app_6_0.xsd"
          version="6.0">
     <display-name>dev-sync</display-name>
+    <listener>
+        <listener-class>ma.hmzelidrissi.devsync.config.AppInitializer</listener-class>
+    </listener>
+    <session-config>
+        <session-timeout>60</session-timeout>
+    </session-config>
 </web-app>

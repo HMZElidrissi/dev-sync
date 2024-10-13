@@ -7,8 +7,8 @@
 <!--        <jta-data-source>jdbc/DevSyncDS</jta-data-source>-->
 <!--        <properties>-->
 <!--            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>-->
-<!--            <property name="jakarta.persistence.schema-generation.database.action" value="create"/>-->
-<!--&lt;!&ndash;            <property name="hibernate.hbm2ddl.auto" value="update"/>&ndash;&gt;-->
+<!--&lt;!&ndash;            <property name="jakarta.persistence.schema-generation.database.action" value="create"/>&ndash;&gt;-->
+<!--            <property name="hibernate.hbm2ddl.auto" value="update"/>-->
 <!--            <property name="hibernate.show_sql" value="true"/>-->
 <!--            <property name="hibernate.format_sql" value="true"/>-->
 <!--        </properties>-->

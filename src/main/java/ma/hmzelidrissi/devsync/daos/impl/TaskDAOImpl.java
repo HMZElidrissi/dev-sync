@@ -43,4 +43,11 @@ public class TaskDAOImpl implements TaskDAO {
          entityManager.remove(task);
         }
     }
+
+    @Override
+    public List<Task> findByUserId(Long id) {
+        return entityManager.createQuery("SELECT t from Task t WHERE t.assignedTo.id = :id", Task.class)
+                .setParameter("id", id)
+                .getResultList();
+    }
 }

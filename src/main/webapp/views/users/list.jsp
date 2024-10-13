@@ -24,7 +24,7 @@
                     <td class="px-6 py-4 whitespace-nowrap">${user.email}</td>
                     <td class="px-6 py-4 whitespace-nowrap">${user.role}</td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                        <a href="${pageContext.request.contextPath}/users/${user.id}"
+                        <a href="${pageContext.request.contextPath}/admin/users/${user.id}"
                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-indigo-700 bg-indigo-100 hover:bg-indigo-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                             <svg class="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -32,14 +32,14 @@
                             </svg>
                             View
                         </a>
-                        <a href="${pageContext.request.contextPath}/users/edit/${user.id}"
+                        <a href="${pageContext.request.contextPath}/admin/users/edit/${user.id}"
                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-blue-700 bg-blue-100 hover:bg-blue-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
                             <svg class="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
                             </svg>
                             Edit
                         </a>
-                        <a href="${pageContext.request.contextPath}/users/delete/${user.id}"
+                        <a href="${pageContext.request.contextPath}/admin/users/delete/${user.id}"
                            class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-red-700 bg-red-100 hover:bg-red-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                            onclick="return confirm('Are you sure you want to delete this user?')">
                             <svg class="mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -54,7 +54,7 @@
         </table>
     </div>
     <div class="mt-6">
-        <a href="${pageContext.request.contextPath}/users/new" class="inline-block bg-gray-700 hover:bg-gray-900 text-white font-bold py-2 px-4 rounded">
+        <a href="${pageContext.request.contextPath}/admin/users/new" class="inline-block bg-gray-700 hover:bg-gray-900 text-white font-bold py-2 px-4 rounded">
             Create New User
         </a>
     </div>

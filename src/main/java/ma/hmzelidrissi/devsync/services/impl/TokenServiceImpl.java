@@ -9,12 +9,16 @@ import ma.hmzelidrissi.devsync.entities.User;
 import ma.hmzelidrissi.devsync.services.TokenService;
 
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 @ApplicationScoped
 @Transactional
 public class TokenServiceImpl implements TokenService {
     @Inject
     private TokenDAO tokenDAO;
+
+    private static final Logger LOGGER = Logger.getLogger(TokenServiceImpl.class.getName());
 
     @Override
     public void useReplaceToken(User user) {
@@ -29,12 +33,25 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public void useDeleteToken(User user) {
-        Token token = tokenDAO.findByUser(user);
-        if (token.getMonthlyDeleteTokens() > 0) {
-            token.setMonthlyDeleteTokens(token.getMonthlyDeleteTokens() - 1);
-            tokenDAO.update(token);
-        } else {
-            throw new IllegalStateException("No delete tokens available");
+        LOGGER.log(Level.INFO, "Attempting to use delete token for user: {0}", user.getUsername());
+        try {
+            Token token = tokenDAO.findByUser(user);
+            if (token == null) {
+                LOGGER.log(Level.SEVERE, "No token found for user: {0}", user.getUsername());
+                throw new IllegalStateException("No token found for user");
+            }
+            LOGGER.log(Level.INFO, "Current monthly delete tokens for user {0}: {1}", new Object[]{user.getUsername(), token.getMonthlyDeleteTokens()});
+            if (token.getMonthlyDeleteTokens() > 0) {
+                token.setMonthlyDeleteTokens(token.getMonthlyDeleteTokens() - 1);
+                tokenDAO.update(token);
+                LOGGER.log(Level.INFO, "Delete token used successfully. Remaining tokens: {0}", token.getMonthlyDeleteTokens());
+            } else {
+                LOGGER.log(Level.WARNING, "No delete tokens available for user: {0}", user.getUsername());
+                throw new IllegalStateException("No delete tokens available");
+            }
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error using delete token for user " + user.getUsername() + ": " + e.getMessage(), e);
+            throw new RuntimeException("Error using delete token", e);
         }
     }
 

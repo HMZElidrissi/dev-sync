@@ -10,4 +10,5 @@ public interface TaskDAO {
     List<Task> findAll();
     Task update(Task task);
     void delete(Long id);
+    List<Task> findByUserId(Long id);
 }

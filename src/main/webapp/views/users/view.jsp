@@ -33,7 +33,7 @@
         </table>
     </div>
     <div class="mt-6">
-        <a href="${pageContext.request.contextPath}/users" class="inline-block bg-gray-700 hover:bg-gray-900 text-white font-bold py-2 px-4 rounded mr-2">
+        <a href="${pageContext.request.contextPath}/admin/users" class="inline-block bg-gray-700 hover:bg-gray-900 text-white font-bold py-2 px-4 rounded mr-2">
             Back to User List
         </a>
         <a href="${pageContext.request.contextPath}/users/edit/${user.id}" class="inline-block bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded">

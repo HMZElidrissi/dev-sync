@@ -27,6 +27,9 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    private Token token;
+
     public Long getId() {
         return id;
     }
@@ -81,5 +84,13 @@ public class User {
 
     public void setRole(Role role) {
         this.role = role;
+    }
+
+    public Token getToken() {
+        return token;
+    }
+
+    public void setToken(Token token) {
+        this.token = token;
     }
 }

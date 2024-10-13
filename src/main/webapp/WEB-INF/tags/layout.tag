@@ -19,22 +19,35 @@
                  class="h-14 mx-auto">
         </div>
         <nav class="mt-8">
-            <a href="${pageContext.request.contextPath}/users"
-               class="flex items-center py-3 px-6 text-sm hover:bg-gray-400 transition duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24"
-                     stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
-                </svg>
-                Users Management
-            </a>
-            <a href="${pageContext.request.contextPath}/tasks"
-               class="flex items-center py-3 px-6 text-sm hover:bg-gray-400 transition duration-200">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
-                </svg>
-                Tasks Management
-            </a>
+            <c:choose>
+                <c:when test="${sessionScope.user.role == 'MANAGER'}">
+                    <a href="${pageContext.request.contextPath}/admin/users"
+                       class="flex items-center py-3 px-6 text-sm hover:bg-gray-400 transition duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24"
+                             stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                  d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        Users Management
+                    </a>
+                    <a href="${pageContext.request.contextPath}/admin/tasks"
+                       class="flex items-center py-3 px-6 text-sm hover:bg-gray-400 transition duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
+                        </svg>
+                        Tasks Management
+                    </a>
+                </c:when>
+                <c:otherwise>
+                    <a href="${pageContext.request.contextPath}/user/tasks"
+                       class="flex items-center py-3 px-6 text-sm hover:bg-gray-400 transition duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path>
+                        </svg>
+                        My Tasks
+                    </a>
+                </c:otherwise>
+            </c:choose>
         </nav>
     </div>
 
@@ -45,10 +58,16 @@
             <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8 flex justify-between items-center">
                 <h1 class="text-2xl font-semibold text-gray-900">${title}</h1>
                 <div class="flex items-center">
-                    <span class="text-sm text-gray-500 mr-4">Welcome, User</span>
-                    <button class="bg-gray-700 hover:bg-gray-900 text-white px-4 py-2 rounded-md text-sm transition duration-200">
+                    <span class="text-sm text-gray-500 mr-4">Welcome, ${sessionScope.user.firstName} ${sessionScope.user.lastName}</span>
+                    <c:if test="${sessionScope.user.role != 'MANAGER'}">
+                        <span class="text-sm text-gray-500 mr-4">
+                            Replace Tokens: ${sessionScope.user.token.dailyReplaceTokens} |
+                            Delete Tokens: ${sessionScope.user.token.monthlyDeleteTokens}
+                        </span>
+                    </c:if>
+                    <a href="${pageContext.request.contextPath}/logout" class="bg-gray-700 hover:bg-gray-900 text-white px-4 py-2 rounded-md text-sm transition duration-200">
                         Logout
-                    </button>
+                    </a>
                 </div>
             </div>
         </header>

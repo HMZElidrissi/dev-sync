@@ -1,6 +1,8 @@
 package ma.hmzelidrissi.devsync.entities;
 
 import jakarta.persistence.*;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
 
@@ -18,9 +20,9 @@ public class Task {
     private String description;
 
     @Column(nullable = false)
-    private LocalDateTime dueDate;
+    private LocalDate dueDate;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER, targetClass = String.class)
     @CollectionTable(name = "task_tags", joinColumns = @JoinColumn(name = "task_id"))
     @Column(name = "tag")
     private Set<String> tags;
@@ -63,11 +65,11 @@ public class Task {
         this.description = description;
     }
 
-    public LocalDateTime getDueDate() {
+    public LocalDate getDueDate() {
         return dueDate;
     }
 
-    public void setDueDate(LocalDateTime dueDate) {
+    public void setDueDate(LocalDate dueDate) {
         this.dueDate = dueDate;
     }
 

@@ -1,6 +1,7 @@
 package ma.hmzelidrissi.devsync.daos.impl;
 
 import ma.hmzelidrissi.devsync.daos.UserDAO;
+import ma.hmzelidrissi.devsync.entities.Role;
 import ma.hmzelidrissi.devsync.entities.User;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
@@ -80,5 +81,15 @@ public class UserDAOImplWithHibernate implements UserDAO {
                 throw new RuntimeException("Failed to delete user", e);
             }
         }
+    }
+
+    @Override
+    public User findByUsername(String username) {
+        return null;
+    }
+
+    @Override
+    public List<User> findByRole(Role role) {
+        return List.of();
     }
 }

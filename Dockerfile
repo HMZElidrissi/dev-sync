@@ -1,4 +1,4 @@
-FROM tomee:9-alpine-plume
+FROM tomee:9-jre11-alpine-plume
 
 # Remove the default webapps
 RUN rm -rf /usr/local/tomee/webapps/*

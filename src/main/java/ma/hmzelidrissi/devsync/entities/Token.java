@@ -14,9 +14,15 @@ public class Token {
     @OneToOne
     private User user;
 
-    private int dailyReplaceTokens = 2;
-    private int monthlyDeleteTokens = 1;
+    private int dailyReplaceTokens;
+    private int monthlyDeleteTokens;
     private LocalDate lastResetDate;
+
+    public Token() {
+        this.dailyReplaceTokens = 2;
+        this.monthlyDeleteTokens = 1;
+        this.lastResetDate = LocalDate.now();
+    }
 
     public Long getId() {
         return id;

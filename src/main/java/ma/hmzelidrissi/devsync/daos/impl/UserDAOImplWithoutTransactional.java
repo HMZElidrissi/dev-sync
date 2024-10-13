@@ -7,6 +7,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityTransaction;
 import jakarta.persistence.PersistenceContext;
 import ma.hmzelidrissi.devsync.daos.UserDAO;
+import ma.hmzelidrissi.devsync.entities.Role;
 import ma.hmzelidrissi.devsync.entities.User;
 
 import java.util.List;
@@ -79,5 +80,15 @@ public class UserDAOImplWithoutTransactional implements UserDAO {
             }
             throw new RuntimeException("Failed to delete user", e);
         }
+    }
+
+    @Override
+    public User findByUsername(String username) {
+        return null;
+    }
+
+    @Override
+    public List<User> findByRole(Role role) {
+        return List.of();
     }
 }

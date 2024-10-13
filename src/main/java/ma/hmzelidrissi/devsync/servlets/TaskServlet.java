@@ -6,18 +6,19 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import ma.hmzelidrissi.devsync.entities.Role;
 import ma.hmzelidrissi.devsync.entities.Task;
 import ma.hmzelidrissi.devsync.entities.User;
 import ma.hmzelidrissi.devsync.services.TaskService;
 import ma.hmzelidrissi.devsync.services.UserService;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
-@WebServlet("/tasks/*")
+@WebServlet({"/admin/tasks/*", "/user/tasks/*"})
 public class TaskServlet extends HttpServlet {
 
     @Inject
@@ -28,69 +29,101 @@ public class TaskServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        User currentUser = (User) request.getSession().getAttribute("user");
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
         String pathInfo = request.getPathInfo();
+        String servletPath = request.getServletPath();
+
+        if (servletPath.startsWith("/admin") && currentUser.getRole() != Role.MANAGER) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
+            return;
+        }
+
         if (pathInfo == null || pathInfo.equals("/")) {
-            listTasks(request, response);
+            listTasks(request, response, currentUser);
         } else if (pathInfo.equals("/new")) {
-            showTaskForm(request, response);
-        } else if (pathInfo.equals("/kanban")) {
-            showKanbanView(request, response);
+            showTaskForm(request, response, currentUser);
+        } else if (pathInfo.startsWith("/view/")) {
+            viewTask(request, response, getLongParameter(pathInfo, "/view/"));
+        } else if (pathInfo.startsWith("/edit/")) {
+            showEditForm(request, response, getLongParameter(pathInfo, "/edit/"), currentUser);
+        } else if (pathInfo.startsWith("/replace/")) {
+            showReplaceForm(request, response, getLongParameter(pathInfo, "/replace/"), currentUser);
         } else {
-            String[] splits = pathInfo.split("/");
-            if (splits.length == 2) {
-                viewTask(request, response, Long.parseLong(splits[1]));
-            } else if (splits.length == 3 && splits[1].equals("edit")) {
-                showEditForm(request, response, Long.parseLong(splits[2]));
-            } else {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND);
-            }
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+        User currentUser = (User) request.getSession().getAttribute("user");
+        if (currentUser == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
         String pathInfo = request.getPathInfo();
+        String servletPath = request.getServletPath();
+
+        if (servletPath.startsWith("/admin") && currentUser.getRole() != Role.MANAGER) {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
+            return;
+        }
+
         if (pathInfo == null || pathInfo.equals("/")) {
-            createTask(request, response);
+            createTask(request, response, currentUser);
+        } else if (pathInfo.startsWith("/status/")) {
+            updateTaskStatus(request, response, getLongParameter(pathInfo, "/status/"));
+        } else if (pathInfo.startsWith("/replace/")) {
+            replaceTask(request, response, getLongParameter(pathInfo, "/replace/"), currentUser);
         } else {
-            String[] splits = pathInfo.split("/");
-            if (splits.length == 3 && splits[2].equals("status")) {
-                updateTaskStatus(request, response, Long.parseLong(splits[1]));
-            } else if (splits.length == 3 && splits[2].equals("replace")) {
-                replaceTask(request, response, Long.parseLong(splits[1]));
-            } else {
-                response.sendError(HttpServletResponse.SC_NOT_FOUND);
-            }
+            response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
 
     @Override
-    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+    protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        User currentUser = (User) request.getSession().getAttribute("user");
+        if (currentUser == null) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return;
+        }
+
         String pathInfo = request.getPathInfo();
         if (pathInfo != null && pathInfo.length() > 1) {
-            Long taskId = Long.parseLong(pathInfo.substring(1));
-            deleteTask(request, response, taskId);
+            deleteTask(request, response, getLongParameter(pathInfo, "/"), currentUser);
         } else {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST);
         }
     }
 
-    private void listTasks(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        List<Task> tasks = taskService.getAllTasks();
+    private void listTasks(HttpServletRequest request, HttpServletResponse response, User currentUser) throws ServletException, IOException {
+        List<Task> tasks;
+        String viewPath;
+
+        if (currentUser.getRole() == Role.MANAGER) {
+            tasks = taskService.getAllTasks();
+            viewPath = "/views/tasks/list_manager.jsp";
+        } else {
+            tasks = taskService.getTasksForUser(currentUser.getId());
+            viewPath = "/views/tasks/list_user.jsp";
+        }
+
         request.setAttribute("tasks", tasks);
-        request.getRequestDispatcher("/views/tasks/list.jsp").forward(request, response);
+        request.getRequestDispatcher(viewPath).forward(request, response);
     }
 
-    private void showKanbanView(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        List<Task> tasks = taskService.getAllTasks();
-        request.setAttribute("tasks", tasks);
-        request.getRequestDispatcher("/views/tasks/kanban.jsp").forward(request, response);
-    }
-
-    private void showTaskForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        List<User> users = userService.getAllUsers();
-        request.setAttribute("users", users);
-        request.getRequestDispatcher("/views/tasks/form.jsp").forward(request, response);
+    private void showTaskForm(HttpServletRequest request, HttpServletResponse response, User currentUser) throws ServletException, IOException {
+        if (currentUser.getRole() == Role.MANAGER) {
+            List<User> users = userService.getAllUsers();
+            request.setAttribute("users", users);
+        }
+        String viewPath = currentUser.getRole() == Role.MANAGER ? "/views/tasks/form_manager.jsp" : "/views/tasks/form_user.jsp";
+        request.getRequestDispatcher(viewPath).forward(request, response);
     }
 
     private void viewTask(HttpServletRequest request, HttpServletResponse response, Long id) throws ServletException, IOException {
@@ -103,35 +136,64 @@ public class TaskServlet extends HttpServlet {
         }
     }
 
-    private void showEditForm(HttpServletRequest request, HttpServletResponse response, Long id) throws ServletException, IOException {
+    private void showEditForm(HttpServletRequest request, HttpServletResponse response, Long id, User currentUser) throws ServletException, IOException {
         Task task = taskService.getTaskById(id);
-        List<User> users = userService.getAllUsers();
-        if (task != null) {
+        if (task != null && (currentUser.getRole() == Role.MANAGER || task.getCreatedBy().getId().equals(currentUser.getId()))) {
             request.setAttribute("task", task);
-            request.setAttribute("users", users);
-            request.getRequestDispatcher("/views/tasks/form.jsp").forward(request, response);
+            if (currentUser.getRole() == Role.MANAGER) {
+                List<User> users = userService.getAllUsers();
+                request.setAttribute("users", users);
+            }
+            String viewPath = currentUser.getRole() == Role.MANAGER ? "/views/tasks/form_manager.jsp" : "/views/tasks/form_user.jsp";
+            request.getRequestDispatcher(viewPath).forward(request, response);
         } else {
-            response.sendError(HttpServletResponse.SC_NOT_FOUND);
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
         }
     }
 
-    private void createTask(HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
-        Task task = new Task();
-        task.setTitle(request.getParameter("title"));
-        task.setDescription(request.getParameter("description"));
-        task.setDueDate(LocalDateTime.parse(request.getParameter("dueDate")));
+    private void showReplaceForm(HttpServletRequest request, HttpServletResponse response, Long id, User currentUser) throws ServletException, IOException {
+        Task task = taskService.getTaskById(id);
+        if (task != null && task.getAssignedTo().getId().equals(currentUser.getId()) && !task.getCreatedBy().getId().equals(currentUser.getId())) {
+            request.setAttribute("task", task);
+            request.getRequestDispatcher("/views/tasks/user_replace_form.jsp").forward(request, response);
+        } else {
+            response.sendError(HttpServletResponse.SC_FORBIDDEN);
+        }
+    }
 
-        String[] tags = request.getParameter("tags").split(",");
-        task.setTags(new HashSet<>(Arrays.asList(tags)));
-
-        Long assignedUserId = Long.parseLong(request.getParameter("assignedTo"));
-
+    private void createTask(HttpServletRequest request, HttpServletResponse response, User currentUser) throws IOException, ServletException {
         try {
+            Task task = new Task();
+            task.setTitle(request.getParameter("title"));
+            task.setDescription(request.getParameter("description"));
+
+            String dueDateStr = request.getParameter("dueDate");
+            if (dueDateStr == null || dueDateStr.isEmpty()) {
+                throw new IllegalArgumentException("Due date is required");
+            }
+            LocalDate dueDate = LocalDate.parse(dueDateStr);
+            task.setDueDate(dueDate);
+
+            String tagsStr = request.getParameter("tags");
+            if (tagsStr == null || tagsStr.isEmpty()) {
+                throw new IllegalArgumentException("Tags are required");
+            }
+            String[] tags = tagsStr.split(",");
+            task.setTags(new HashSet<>(Arrays.asList(tags)));
+
+            Long assignedUserId = currentUser.getRole() == Role.MANAGER ?
+                    Long.parseLong(request.getParameter("assignedTo")) :
+                    currentUser.getId();
+
+            task.setCreatedBy(currentUser);
             taskService.createTask(task, assignedUserId);
-            response.sendRedirect(request.getContextPath() + "/tasks");
-        } catch (IllegalArgumentException e) {
-            request.setAttribute("error", e.getMessage());
-            request.getRequestDispatcher("/views/tasks/form.jsp").forward(request, response);
+
+            response.sendRedirect(request.getContextPath() + (currentUser.getRole() == Role.MANAGER ? "/admin/tasks" : "/user/tasks"));
+        } catch (Exception e) {
+            e.printStackTrace();
+            request.setAttribute("error", "Error creating task: " + e.getMessage());
+            String viewPath = currentUser.getRole() == Role.MANAGER ? "/views/tasks/form_manager.jsp" : "/views/tasks/form_user.jsp";
+            request.getRequestDispatcher(viewPath).forward(request, response);
         }
     }
 
@@ -140,8 +202,6 @@ public class TaskServlet extends HttpServlet {
         try {
             if (completed) {
                 taskService.markTaskAsCompleted(id);
-            } else {
-                // Implement reopening a task if needed
             }
             response.setStatus(HttpServletResponse.SC_OK);
         } catch (IllegalStateException e) {
@@ -149,34 +209,55 @@ public class TaskServlet extends HttpServlet {
         }
     }
 
-    private void replaceTask(HttpServletRequest request, HttpServletResponse response, Long id) throws IOException, ServletException {
+    private void replaceTask(HttpServletRequest request, HttpServletResponse response, Long id, User currentUser) throws IOException, ServletException {
         Task newTask = new Task();
         newTask.setTitle(request.getParameter("title"));
         newTask.setDescription(request.getParameter("description"));
-        newTask.setDueDate(LocalDateTime.parse(request.getParameter("dueDate")));
+        newTask.setDueDate(LocalDate.parse(request.getParameter("dueDate")));
 
         String[] tags = request.getParameter("tags").split(",");
         newTask.setTags(new HashSet<>(Arrays.asList(tags)));
 
-        User currentUser = (User) request.getSession().getAttribute("currentUser");
-
         try {
+            validateTaskCreation(currentUser, currentUser.getId(), newTask.getDueDate(), tags);
             taskService.replaceTask(id, currentUser, newTask);
-            response.sendRedirect(request.getContextPath() + "/tasks");
+            response.sendRedirect(request.getContextPath() + "/user/tasks");
         } catch (IllegalArgumentException | IllegalStateException e) {
             request.setAttribute("error", e.getMessage());
-            request.getRequestDispatcher("/views/tasks/form.jsp").forward(request, response);
+            request.getRequestDispatcher("/views/tasks/user_replace_form.jsp").forward(request, response);
         }
     }
 
-    private void deleteTask(HttpServletRequest request, HttpServletResponse response, Long id) throws IOException {
-        User currentUser = (User) request.getSession().getAttribute("currentUser");
-
+    private void deleteTask(HttpServletRequest request, HttpServletResponse response, Long id, User currentUser) throws IOException {
         try {
             taskService.deleteTask(id, currentUser);
             response.setStatus(HttpServletResponse.SC_OK);
+            response.getWriter().write("Task deleted successfully");
+        } catch (IllegalArgumentException e) {
+            response.sendError(HttpServletResponse.SC_NOT_FOUND, e.getMessage());
         } catch (IllegalStateException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+        } catch (Exception e) {
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "An error occurred while deleting the task");
         }
+    }
+
+    private void validateTaskCreation(User currentUser, Long assignedUserId, LocalDate dueDate, String[] tags) {
+        if (!currentUser.getId().equals(assignedUserId) && currentUser.getRole() != Role.MANAGER) {
+            throw new IllegalArgumentException("You can only assign tasks to yourself");
+        }
+        if (dueDate.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Task cannot be created in the past");
+        }
+        if (dueDate.isAfter(LocalDate.now().plusDays(3))) {
+            throw new IllegalArgumentException("Task cannot be scheduled more than 3 days in advance");
+        }
+        if (tags.length < 2) {
+            throw new IllegalArgumentException("Task must have at least 2 tags");
+        }
+    }
+
+    private Long getLongParameter(String pathInfo, String prefix) {
+        return Long.parseLong(pathInfo.substring(prefix.length()));
     }
 }

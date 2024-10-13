@@ -12,4 +12,5 @@ public interface TaskService {
     void markTaskAsCompleted(Long taskId);
     void replaceTask(Long taskId, User user, Task newTask);
     void deleteTask(Long taskId, User user);
+    List<Task> getTasksForUser(Long id);
 }

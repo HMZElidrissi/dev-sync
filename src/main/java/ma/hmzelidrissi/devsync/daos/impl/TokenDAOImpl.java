@@ -2,6 +2,7 @@ package ma.hmzelidrissi.devsync.daos.impl;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import jakarta.transaction.Transactional;
 import ma.hmzelidrissi.devsync.daos.TokenDAO;
@@ -24,9 +25,13 @@ public class TokenDAOImpl implements TokenDAO {
 
     @Override
     public Token findByUser(User user) {
-        return entityManager.createQuery("SELECT t FROM Token t WHERE t.user = :user", Token.class)
-                .setParameter("user", user)
-                .getSingleResult();
+        try {
+            return entityManager.createQuery("SELECT t FROM Token t WHERE t.user = :user", Token.class)
+                    .setParameter("user", user)
+                    .getSingleResult();
+        } catch (NoResultException e) {
+            return null;
+        }
     }
 
     @Override
