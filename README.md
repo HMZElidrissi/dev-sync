@@ -49,31 +49,6 @@ assigning, and tracking tasks, with a unique token system for task modifications
 - Docker
 - PostgreSQL
 
-### Project Structure
-
-```
-dev-sync/
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── ma/hmzelidrissi/devsync/
-│   │   │       ├── config/
-│   │   │       ├── daos/
-│   │   │       ├── entities/
-│   │   │       ├── services/
-│   │   │       └── servlets/
-│   │   ├── resources/
-│   │   │   └── META-INF/
-│   │   └── webapp/
-│   │       ├── WEB-INF/
-│   │       │   ├── tags/
-│   │       │   └── views/
-│   │       └── index.jsp
-│   └── test/
-├── pom.xml
-└── README.md
-```
-
 ### Setup and Installation
 
 1. Clone the repository:
