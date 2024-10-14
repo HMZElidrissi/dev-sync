@@ -81,4 +81,40 @@ assigning, and tracking tasks, with a unique token system for task modifications
     ```
    mvn install:install-file -Dfile=target/dev-sync.war -DgroupId=ma.hmzelidrissi -DartifactId=dev-sync -Dversion=1.1.0 -Dpackaging=war
     ```
-
+7. To deploy the build artifact to a remote Maven repository:
+    - Add the following to the `pom.xml` file:
+    ```
+    <distributionManagement>
+      <repository>
+        <id>remote-repository</id>
+        <name>Remote Repository Name</name>
+        <url>https://your-repository-url.com/releases</url>
+      </repository>
+      <snapshotRepository>
+        <id>remote-repository</id>
+        <name>Remote Snapshot Repository Name</name>
+        <url>https://your-repository-url.com/snapshots</url>
+      </snapshotRepository>
+    </distributionManagement>
+    ```
+    - Configure Maven settings
+      In your `~/.m2/settings.xml` file (create it if it doesn't exist), add:
+    ```
+    <settings>
+      <servers>
+        <server>
+          <id>remote-repository</id>
+          <username>your-username</username>
+          <password>your-password</password>
+        </server>
+      </servers>
+    </settings>
+    ```
+   - Build the project:
+    ```
+    mvn clean package
+    ```
+    - Deploy the artifact:
+    ```
+    mvn deploy
+    ```
