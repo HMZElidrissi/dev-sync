@@ -79,7 +79,7 @@ public class TaskServlet extends HttpServlet {
         } else if (pathInfo.startsWith("/status/")) {
             updateTaskStatus(request, response, getLongParameter(pathInfo, "/status/"));
         } else if (pathInfo.startsWith("/replace/")) {
-            replaceTask(request, response, getLongParameter(pathInfo, "/replace/"), currentUser);
+            createTaskChangeRequest(request, response, getLongParameter(pathInfo, "/replace/"), currentUser);
         } else {
             response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
@@ -206,6 +206,25 @@ public class TaskServlet extends HttpServlet {
             response.setStatus(HttpServletResponse.SC_OK);
         } catch (IllegalStateException e) {
             response.sendError(HttpServletResponse.SC_BAD_REQUEST, e.getMessage());
+        }
+    }
+
+    private void createTaskChangeRequest(HttpServletRequest request, HttpServletResponse response, Long taskId, User currentUser) throws IOException, ServletException {
+        Task newTaskDetails = new Task();
+        newTaskDetails.setTitle(request.getParameter("title"));
+        newTaskDetails.setDescription(request.getParameter("description"));
+        newTaskDetails.setDueDate(LocalDate.parse(request.getParameter("dueDate")));
+
+        String[] tags = request.getParameter("tags").split(",");
+        newTaskDetails.setTags(new HashSet<>(Arrays.asList(tags)));
+
+        try {
+            validateTaskCreation(currentUser, currentUser.getId(), newTaskDetails.getDueDate(), tags);
+            taskService.createTaskChangeRequest(taskId, currentUser, newTaskDetails);
+            response.sendRedirect(request.getContextPath() + "/user/tasks");
+        } catch (IllegalArgumentException | IllegalStateException e) {
+            request.setAttribute("error", e.getMessage());
+            request.getRequestDispatcher("/views/tasks/user_replace_form.jsp").forward(request, response);
         }
     }
 

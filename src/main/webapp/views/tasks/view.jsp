@@ -50,7 +50,7 @@
                         <a href="#" onclick="deleteTask(${task.id})" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded">Delete</a>
                     </c:if>
                     <c:if test="${task.createdBy.id != sessionScope.user.id && task.assignedTo.id == sessionScope.user.id}">
-                        <a href="${pageContext.request.contextPath}/user/tasks/replace/${task.id}" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">Replace</a>
+                        <a href="${pageContext.request.contextPath}/user/tasks/replace/${task.id}" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded">Request Change</a>
                     </c:if>
                     <a href="${pageContext.request.contextPath}/user/tasks" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">Back to List</a>
                 </c:otherwise>
@@ -61,6 +61,7 @@
 
 <script>
     function markAsCompleted(taskId) {
+        event.preventDefault();
         fetch('${pageContext.request.contextPath}/user/tasks/status/' + taskId, {
             method: 'POST',
             headers: {

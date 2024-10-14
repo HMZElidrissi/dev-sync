@@ -7,4 +7,7 @@ public interface TokenService {
     void useDeleteToken(User user);
     void resetDailyTokens();
     void resetMonthlyTokens();
+    void doubleModificationTokens(User requestor);
+
+    int getTokensUsed(Long userId);
 }

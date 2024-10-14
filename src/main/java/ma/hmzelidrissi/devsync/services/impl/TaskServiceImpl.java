@@ -6,6 +6,7 @@ import jakarta.transaction.Transactional;
 import ma.hmzelidrissi.devsync.daos.TaskDAO;
 import ma.hmzelidrissi.devsync.entities.Role;
 import ma.hmzelidrissi.devsync.entities.Task;
+import ma.hmzelidrissi.devsync.entities.TaskChangeRequest;
 import ma.hmzelidrissi.devsync.entities.User;
 import ma.hmzelidrissi.devsync.services.TaskService;
 import ma.hmzelidrissi.devsync.services.TokenService;
@@ -13,15 +14,14 @@ import ma.hmzelidrissi.devsync.services.UserService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @ApplicationScoped
 @Transactional
 public class TaskServiceImpl implements TaskService {
-
-    private static final Logger LOGGER = Logger.getLogger(TaskServiceImpl.class.getName());
 
     @Inject
     private TaskDAO taskDAO;
@@ -79,41 +79,28 @@ public class TaskServiceImpl implements TaskService {
     }
 
     public void deleteTask(Long taskId, User user) {
-        LOGGER.log(Level.INFO, "Attempting to delete task with ID: {0} by user: {1}", new Object[]{taskId, user.getUsername()});
         Task task = taskDAO.findById(taskId);
         if (task == null) {
-            LOGGER.log(Level.WARNING, "Task not found with ID: {0}", taskId);
             throw new IllegalArgumentException("Task not found");
         }
-
-        LOGGER.log(Level.INFO, "Task found. Created by: {0}, Assigned to: {1}", new Object[]{task.getCreatedBy().getUsername(), task.getAssignedTo().getUsername()});
 
         try {
             if (user.getRole() != Role.MANAGER) {
                 if (!task.getCreatedBy().getId().equals(user.getId()) && !task.getAssignedTo().getId().equals(user.getId())) {
-                    LOGGER.log(Level.WARNING, "User {0} attempted to delete task {1} without permission", new Object[]{user.getUsername(), taskId});
                     throw new IllegalStateException("You don't have permission to delete this task");
                 }
                 if (!task.getCreatedBy().getId().equals(user.getId())) {
-                    LOGGER.log(Level.INFO, "Attempting to use delete token for user {0}", user.getUsername());
                     try {
                         tokenService.useDeleteToken(user);
-                        LOGGER.log(Level.INFO, "Delete token successfully used for user {0}", user.getUsername());
                     } catch (RuntimeException e) {
-                        LOGGER.log(Level.SEVERE, "Error using delete token: " + e.getMessage(), e);
                         throw new IllegalStateException("Unable to use delete token: " + e.getMessage());
                     }
                 }
             }
-
-            LOGGER.log(Level.INFO, "Deleting task with ID: {0}", taskId);
             taskDAO.delete(taskId);
-            LOGGER.log(Level.INFO, "Task deleted successfully");
         } catch (IllegalStateException e) {
-            LOGGER.log(Level.SEVERE, "Error deleting task: " + e.getMessage(), e);
             throw e;
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Unexpected error during task deletion: " + e.getMessage(), e);
             throw new RuntimeException("An unexpected error occurred while deleting the task", e);
         }
     }
@@ -121,6 +108,101 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public List<Task> getTasksForUser(Long id) {
         return taskDAO.findByUserId(id);
+    }
+
+    @Override
+    public List<Task> getOverdueTasks(LocalDate today) {
+        return taskDAO.findOverdueTasks(today);
+    }
+
+    @Override
+    public void updateTask(Task task) {
+        taskDAO.update(task);
+    }
+
+    @Override
+    public void replaceTaskByManager(Long oldTaskId, Task newTask, Long newAssigneeId, User manager) {
+        if (manager.getRole() != Role.MANAGER) {
+            throw new IllegalStateException("Only managers can use this feature");
+        }
+
+        Task oldTask = taskDAO.findById(oldTaskId);
+        if (oldTask == null) {
+            throw new IllegalArgumentException("Task not found");
+        }
+
+        User newAssignee = userService.getUserById(newAssigneeId);
+        if (newAssignee == null) {
+            throw new IllegalArgumentException("New assignee not found");
+        }
+
+        if (oldTask.getAssignedTo().getId().equals(newAssigneeId)) {
+            throw new IllegalArgumentException("New assignee must be different from the current assignee");
+        }
+
+        newTask.setAssignedTo(newAssignee);
+        newTask.setCreatedBy(manager);
+        newTask.setCreatedAt(LocalDateTime.now());
+        newTask.setCompleted(false);
+
+        validateTask(newTask);
+
+        taskDAO.delete(oldTaskId);
+        Task createdTask = taskDAO.create(newTask);
+
+        createdTask.setLockedByManager(true);
+        taskDAO.update(createdTask);
+    }
+
+    @Override
+    public Map<String, Object> getManagerOverview(Long managerId) {
+        User manager = userService.getUserById(managerId);
+        if (manager == null || manager.getRole() != Role.MANAGER) {
+            throw new IllegalArgumentException("Invalid manager ID");
+        }
+
+        List<User> employees = userService.getAllUsers().stream()
+                .filter(user -> user.getRole() == Role.USER)
+                .collect(Collectors.toList());
+        Map<String, Object> overview = new HashMap<>();
+
+        LocalDate now = LocalDate.now();
+        LocalDate weekStart = now.minusDays(7);
+        //        LocalDate monthStart = now.withDayOfMonth(1);
+        //        LocalDate yearStart = now.withDayOfYear(1);
+
+        for (User employee : employees) {
+            Map<String, Object> employeeStats = new HashMap<>();
+
+            List<Task> allTasks = taskDAO.findByAssignedUser(employee.getId());
+
+            employeeStats.put("numberOfTasks", allTasks.size());
+            employeeStats.put("tasksCompletedThisWeek", calculateCompletionPercentage(allTasks, weekStart, now));
+
+            int tokensUsed = tokenService.getTokensUsed(employee.getId());
+            employeeStats.put("tokensUsed", tokensUsed);
+
+            overview.put(employee.getUsername(), employeeStats);
+        }
+
+        return overview;
+    }
+
+    @Override
+    public void createTaskChangeRequest(Long taskId, User currentUser, Task newTaskDetails) {
+        Task task = taskDAO.findById(taskId);
+        TaskChangeRequest request = new TaskChangeRequest();
+        request.setTask(task);
+        request.setRequestor(currentUser);
+        request.setAnswered(false);
+        request.setRequestTime(LocalDateTime.now());
+        taskDAO.createTaskChangeRequest(request);
+    }
+
+    private long calculateCompletionPercentage(List<Task> tasks, LocalDate start, LocalDate end) {
+        return tasks.stream()
+                .filter(task -> !task.getDueDate().isBefore(start) && !task.getDueDate().isAfter(end) && task.isCompleted())
+                .count();
     }
 
     private void validateTask(Task task) {

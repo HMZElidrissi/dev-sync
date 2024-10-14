@@ -7,10 +7,9 @@ import ma.hmzelidrissi.devsync.daos.TokenDAO;
 import ma.hmzelidrissi.devsync.entities.Token;
 import ma.hmzelidrissi.devsync.entities.User;
 import ma.hmzelidrissi.devsync.services.TokenService;
+import ma.hmzelidrissi.devsync.services.UserService;
 
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 @ApplicationScoped
 @Transactional
@@ -18,7 +17,8 @@ public class TokenServiceImpl implements TokenService {
     @Inject
     private TokenDAO tokenDAO;
 
-    private static final Logger LOGGER = Logger.getLogger(TokenServiceImpl.class.getName());
+    @Inject
+    private UserService userService;
 
     @Override
     public void useReplaceToken(User user) {
@@ -33,24 +33,18 @@ public class TokenServiceImpl implements TokenService {
 
     @Override
     public void useDeleteToken(User user) {
-        LOGGER.log(Level.INFO, "Attempting to use delete token for user: {0}", user.getUsername());
         try {
             Token token = tokenDAO.findByUser(user);
             if (token == null) {
-                LOGGER.log(Level.SEVERE, "No token found for user: {0}", user.getUsername());
                 throw new IllegalStateException("No token found for user");
             }
-            LOGGER.log(Level.INFO, "Current monthly delete tokens for user {0}: {1}", new Object[]{user.getUsername(), token.getMonthlyDeleteTokens()});
             if (token.getMonthlyDeleteTokens() > 0) {
                 token.setMonthlyDeleteTokens(token.getMonthlyDeleteTokens() - 1);
                 tokenDAO.update(token);
-                LOGGER.log(Level.INFO, "Delete token used successfully. Remaining tokens: {0}", token.getMonthlyDeleteTokens());
             } else {
-                LOGGER.log(Level.WARNING, "No delete tokens available for user: {0}", user.getUsername());
                 throw new IllegalStateException("No delete tokens available");
             }
         } catch (Exception e) {
-            LOGGER.log(Level.SEVERE, "Error using delete token for user " + user.getUsername() + ": " + e.getMessage(), e);
             throw new RuntimeException("Error using delete token", e);
         }
     }
@@ -71,5 +65,25 @@ public class TokenServiceImpl implements TokenService {
             token.setMonthlyDeleteTokens(1);
             tokenDAO.update(token);
         }
+    }
+
+    @Override
+    public void doubleModificationTokens(User requestor) {
+        Token token = tokenDAO.findByUser(requestor);
+        token.setDailyReplaceTokens(token.getDailyReplaceTokens() * 2);
+        token.setMonthlyDeleteTokens(token.getMonthlyDeleteTokens() * 2);
+        tokenDAO.update(token);
+    }
+
+    @Override
+    public int getTokensUsed(Long userId) {
+        User user = userService.getUserById(userId);
+        if (user == null) {
+            throw new IllegalArgumentException("Invalid user ID");
+        }
+        int initialReplaceTokens = 2;  // Daily replace tokens
+        int initialDeleteTokens = 1;   // Monthly delete tokens
+        return (initialReplaceTokens - user.getToken().getDailyReplaceTokens()) +
+                (initialDeleteTokens - user.getToken().getMonthlyDeleteTokens());
     }
 }

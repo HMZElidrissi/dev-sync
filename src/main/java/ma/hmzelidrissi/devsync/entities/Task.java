@@ -41,6 +41,8 @@ public class Task {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
+    private boolean lockedByManager;
+
     public Long getId() {
         return id;
     }
@@ -111,5 +113,13 @@ public class Task {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public boolean isLockedByManager() {
+        return lockedByManager;
+    }
+
+    public void setLockedByManager(boolean lockedByManager) {
+        this.lockedByManager = lockedByManager;
     }
 }
