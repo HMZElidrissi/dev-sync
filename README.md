@@ -2,7 +2,8 @@
 
 # DevSync
 
-DevSync is a collaborative task management system designed for development teams. It provides features for creating, assigning, and tracking tasks, with a unique token system for task modifications and deletions.
+DevSync is a collaborative task management system designed for development teams. It provides features for creating,
+assigning, and tracking tasks, with a unique token system for task modifications and deletions.
 
 ## Version 1.1.0
 
@@ -96,4 +97,13 @@ dev-sync/
    ```
 
 5. Access the application at `http://localhost:8084/dev-sync`
+
+6. To deploy the build artifact to the local Maven repository:
+   ```
+   mvn install:install-file -Dfile=<path-to-file> -DgroupId=<group-id> -DartifactId=<artifact-id> -Dversion=<version> -Dpackaging=war
+   ```
+   In this case:
+    ```
+   mvn install:install-file -Dfile=target/dev-sync.war -DgroupId=ma.hmzelidrissi -DartifactId=dev-sync -Dversion=1.1.0 -Dpackaging=war
+    ```
 

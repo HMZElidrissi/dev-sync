@@ -6,7 +6,7 @@
 
     <groupId>ma.hmzelidrissi</groupId>
     <artifactId>dev-sync</artifactId>
-    <version>1.0</version>
+    <version>1.1.0</version>
     <name>dev-sync</name>
     <packaging>war</packaging>
 
