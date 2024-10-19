@@ -25,7 +25,14 @@ pipeline {
 
         stage('Build and Test') {
             steps {
-                sh 'mvn clean test'
+                sh 'mvn clean package'
+            }
+        }
+
+        stage('Verify WAR file') {
+            steps {
+                sh 'ls -l target/'
+                sh 'test -f target/dev-sync.war || (echo "dev-sync.war not found" && exit 1)'
             }
         }
 
