@@ -3,6 +3,10 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
+    }
+
     stages {
         stage('Prepare Version') {
             steps {
@@ -47,9 +51,11 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
-                        docker.image("hmzelidrissi/dev-sync:${env.NEW_VERSION}").push()
-                    }
+                    // docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-credentials') {
+                    //     docker.image("hmzelidrissi/dev-sync:${env.NEW_VERSION}").push()
+                    // }
+                    sh 'echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin'
+                    sh "docker push hmzelidrissi/dev-sync:${env.NEW_VERSION}"
                 }
             }
         }
