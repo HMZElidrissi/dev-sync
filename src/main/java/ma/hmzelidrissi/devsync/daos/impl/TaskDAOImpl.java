@@ -30,7 +30,7 @@ public class TaskDAOImpl implements TaskDAO {
 
     @Override
     public List<Task> findAll() {
-        return entityManager.createQuery("SELECT t from Task t", Task.class).getResultList();
+        return entityManager.createQuery("SELECT t FROM Task t", Task.class).getResultList();
     }
 
     @Override
@@ -48,14 +48,14 @@ public class TaskDAOImpl implements TaskDAO {
 
     @Override
     public List<Task> findByUserId(Long id) {
-        return entityManager.createQuery("SELECT t from Task t WHERE t.assignedTo.id = :id", Task.class)
+        return entityManager.createQuery("SELECT t FROM Task t WHERE t.assignedTo.id = :id", Task.class)
                 .setParameter("id", id)
                 .getResultList();
     }
 
     @Override
     public List<Task> findOverdueTasks(LocalDate today) {
-        return entityManager.createQuery("SELECT t from Task t WHERE t.dueDate < :today AND t.completed = false", Task.class)
+        return entityManager.createQuery("SELECT t FROM Task t WHERE t.dueDate < :today AND t.completed = false", Task.class)
                 .setParameter("today", today)
                 .getResultList();
     }
