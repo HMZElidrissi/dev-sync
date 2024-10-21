@@ -64,13 +64,13 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'GIT_PASSWORD', usernameVariable: 'GIT_USERNAME')]) {
-                        sh "git config user.email 'jenkins@hmzelidrissi.ma'"
-                        sh "git config user.name 'Jenkins'"
-
-                        sh "git add pom.xml"
-                        sh "git commit -m 'Bump version to ${env.NEW_VERSION} [ci skip]'"
-
-                        sh "git push https://${GIT_USERNAME}:${GIT_PASSWORD}@github.com/HMZElidrissi/dev-sync.git HEAD:main"
+                        sh """
+                            git config user.email 'jenkins@hmzelidrissi.ma'
+                            git config user.name 'Jenkins'
+                            git add pom.xml
+                            git commit -m 'Bump version to ${env.NEW_VERSION} [ci skip]'
+                            git push https://\${GIT_USERNAME}:\${GIT_PASSWORD}@github.com/HMZElidrissi/dev-sync.git HEAD:main
+                        """
                     }
                 }
             }
